@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 setup(
     name='iotfunctions',
     # Update the version in iotfunction/__init__.py file.
-    version='8.2.1',
+    version='8.3.0',
     packages=find_packages(),
     install_requires=[
         'dill==0.3.0',
