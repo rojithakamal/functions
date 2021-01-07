@@ -9,9 +9,9 @@ setup(
     packages=find_packages(),
     install_requires=[
         'dill==0.3.0',
-        'numpy>=1.17.3',
-        'pandas>=0.24.0',
-        'scikit-learn==0.20.3',
+        'numpy>=1.18.5',
+        'pandas>=1.0.5',
+        'scikit-learn==0.23.1',
         'scipy==1.5.0',
         'requests==2.25.0',
         'urllib3==1.26.2',
