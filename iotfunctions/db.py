@@ -3043,21 +3043,15 @@ class NativeDatabase:
     TYPE_DB2 = 'db2'
     TYPE_POSTGRESQL = 'postgresql'
 
-    LOGGING_TABLE_NAME = 'KPI_LOGGING'
-
-    QUOTE = '\"'
-    TWO_QUOTES = '\"\"'
-
     def __init__(self, db_type, schema, connection_string):
         self.logger = logging.getLogger(__name__ + '.' + __class__.__name__)
         self.db_type = db_type.lower()
+        self.schema = schema
 
         if self.db_type == self.TYPE_DB2:
             self.quoted_schema = dbhelper.quotingSchemaName(schema)
-            self.quoted_tablename = dbhelper.quotingTableName(__class__.LOGGING_TABLE_NAME.upper())
         elif self.db_type == self.TYPE_POSTGRESQL:
             self.quoted_schema = dbhelper.quotingSchemaName(schema, is_postgre_sql=True)
-            self.quoted_tablename = dbhelper.quotingTableName(__class__.LOGGING_TABLE_NAME.lower(), is_postgre_sql=True)
         else:
             raise Exception("The type '%s' of the database is not recognized. Supported types are "
                             "'db2' and 'postgresql'" % self.db_type)
@@ -3110,50 +3104,6 @@ class NativeDatabase:
                 ibm_db.close(self.db_connection)
 
             logger.info('Native database connection successfully closed.')
-
-    def add_log_snippet(self, transaction_id, entity_type_id, log_snippet):
-
-        if self.db_connection is None:
-            self.establish_connection()
-
-        sql_params = (transaction_id, entity_type_id, log_snippet)
-        # Concatenate log_snippet with already existing content in column LOGFILE of KPI_LOGGING
-        if self.db_type == self.TYPE_DB2:
-            append_log_statement = f"MERGE INTO {self.quoted_schema}.{self.quoted_tablename} AS t " \
-                                   "USING TABLE(VALUES (CAST(? AS BIGINT) , CAST(? AS BIGINT), CAST(? AS CLOB)))" \
-                                   "s(TRANSACTION_ID, ENTITY_TYPE_ID, LOGFILE) " \
-                                   "ON t.TRANSACTION_ID = s.TRANSACTION_ID " \
-                                   "WHEN MATCHED THEN " \
-                                   "UPDATE SET LOGFILE = CONCAT(isnull(t.LOGFILE, ''), s.LOGFILE) " \
-                                   "WHEN NOT MATCHED THEN " \
-                                   "INSERT (TRANSACTION_ID, ENTITY_TYPE_ID, LOGFILE, UPDATED_TS, STARTED_TS, " \
-                                   "OPERATION) " \
-                                   "VALUES (s.TRANSACTION_ID, s.ENTITY_TYPE_ID, s.LOGFILE, CURRENT_TIMESTAMP, " \
-                                   "CURRENT_TIMESTAMP, 'PIPELINE') "
-
-            sql_statement = ibm_db.prepare(self.db_connection, append_log_statement)
-            self.logger.debug(f'Executing SQL statement to append logs to {self.quoted_tablename} : '
-                              f'{append_log_statement}')
-            self.logger.debug(f'Parameters: transaction_id {sql_params[0]}; entity_type_id {sql_params[1]}')
-            ibm_db.bind_param(sql_statement, 1, sql_params[0])
-            ibm_db.bind_param(sql_statement, 2, sql_params[1])
-            ibm_db.bind_param(sql_statement, 3, sql_params[2])
-
-            ibm_db.execute(sql_statement)
-
-        elif self.db_type == self.TYPE_POSTGRESQL:
-            sql_statement = f"INSERT INTO {self.quoted_schema}.{self.quoted_tablename} AS t" \
-                            "(TRANSACTION_ID, ENTITY_TYPE_ID, LOGFILE, UPDATED_TS, STARTED_TS, OPERATION) " \
-                            "VALUES (%s, %s, %s, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 'PIPELINE') " \
-                            "ON CONFLICT (TRANSACTION_ID) DO UPDATE " \
-                            "SET LOGFILE = CONCAT(COALESCE(t.LOGFILE, ''), excluded.LOGFILE) "
-            self.logger.debug(f'Executing SQL statement to append logs to {self.quoted_tablename} : '
-                              f'{sql_statement}')
-            self.logger.debug(f'Parameters: transaction_id {sql_params[0]}; entity_type_id {sql_params[1]}')
-            dbhelper.execute_postgre_sql_query(self.db_connection, sql_statement, sql_params)
-        else:
-            raise Exception(f"The type '{self.db_type}' of the database is not recognized. Supported types are "
-                            "'db2' and 'postgresql'")
 
     def _parse_connection_string_postgresql(self):
 
