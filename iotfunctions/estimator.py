@@ -18,7 +18,7 @@ from .ui import UIMultiItem, UISingle, UIFunctionOutMulti
 
 logger = logging.getLogger(__name__)
 
-PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git@'
+PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git'
 _IS_PREINSTALLED = False
 
 
