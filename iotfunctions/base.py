@@ -39,7 +39,7 @@ from .util import log_df_info, UNIQUE_EXTENSION_LABEL
 
 logger = logging.getLogger(__name__)
 
-PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git@'
+PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git'
 
 
 class BaseFunction(object):
