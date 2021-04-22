@@ -39,7 +39,7 @@ from .util import log_df_info, UNIQUE_EXTENSION_LABEL
 
 logger = logging.getLogger(__name__)
 
-PACKAGE_URL = 'git+https://github.com/ibm-watson-iot/functions.git@'
+PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git@'
 
 
 class BaseFunction(object):
@@ -3576,7 +3576,9 @@ class BaseRegressor(BaseEstimatorFunction):
         # sgd
         params = {'max_iter': [250, 1000, 5000, 10000], 'tol': [0.001, 0.002, 0.005]}
         self.estimators['sgd_regressor'] = (linear_model.SGDRegressor, params)
-
+        # Ridge - rk
+        params = {'alpha': [1.0]}
+        self.estimators['Ridge'] = (linear_model.Ridge, params)
 
 class BaseClassifier(BaseEstimatorFunction):
     """

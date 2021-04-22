@@ -18,7 +18,7 @@ from .ui import UIMultiItem, UISingle, UIFunctionOutMulti
 
 logger = logging.getLogger(__name__)
 
-PACKAGE_URL = 'git+https://github.com/ibm-watson-iot/functions.git@'
+PACKAGE_URL = 'git+https://github.com/rojithakamal/functions.git@'
 _IS_PREINSTALLED = False
 
 
@@ -136,6 +136,29 @@ class SimpleBinaryClassifier(BaseClassifier):
         super().__init__(features=features, targets=targets, predictions=predictions)
         for t in self.targets:
             self.add_training_expression(t, 'df[%s]=df[%s].astype(bool)' % (t, t))
+
+    @classmethod
+    def build_ui(cls):
+        # define arguments that behave as function inputs
+        inputs = []
+        inputs.append(UIMultiItem(name='features', datatype=float, required=True))
+        inputs.append(UIMultiItem(name='targets', datatype=float, required=True, output_item='predictions',
+                                  is_output_datatype_derived=True))
+        return (inputs, [])
+
+class RidgeRegressor(BaseRegressor):
+    ''' Rojitha
+    Sample function that predicts the value of a continuous target variable using the selected list of features.
+    This function is intended to demonstrate the basic workflow of training, evaluating, deploying
+    using a model.
+    '''
+    # class variables
+    train_if_no_model = True
+    estimators_per_execution = 3
+    num_rounds_per_estimator = 3
+
+    def __init__(self, features, targets, predictions=None):
+        super().__init__(features=features, targets=targets, predictions=predictions)
 
     @classmethod
     def build_ui(cls):
